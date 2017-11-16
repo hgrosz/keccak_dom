@@ -376,7 +376,9 @@ end
 always @(*) begin : CHI_CONNECT
     integer i, x, y;
     //`CON_SLICES(dst, dst_len, src, src_len, start_slice, amount)
-    if(CHI_IOTA_ITERATIVE) begin
+    // NOTE: The non-completeness property would not be fulfilled
+    // if chi(pi(rho(theta(STATE)))) is performed combinationally
+    if(CHI_IOTA_ITERATIVE || (SHARES > 1)) begin
         if(RHO_PI_ITERATIVE) begin
             `CON_SLICES(SlicesToChixD, CHI_SLICES, SlicesFromPixD, PI_SLICES, 0, CHI_SLICES)
         end

@@ -47,6 +47,11 @@ endfunction
 //-----------------------------------------------------------------------------
 // Constants
 
+// NOTE: Computing chi(pi(rho(theta(STATE)))) in one cycle would violate the
+// non-completeness property. Hence the output from pi needed to be saved into
+// the state.
+localparam USE_LAMBDA_STEPS = (SHARES > 1 || CHI_IOTA_ITERATIVE);
+
 localparam SBOX_1CYCLE = (SHARES==1 || CHI_DOUBLE_CLK);
 localparam ROUNDS = 12 + 2 * clog2(W);
 
@@ -197,7 +202,7 @@ always @(*) begin : FSM
                     // Absorb done
                     if(ABSORB_ITERATIVE || THETA_ITERATIVE || RHO_PI_ITERATIVE)
                         CtrlStatexDN = THETA;
-                    else if(CHI_IOTA_ITERATIVE)
+                    else if(USE_LAMBDA_STEPS)
                         CtrlStatexDN = LAMBDA;
                     else
                         CtrlStatexDN = CHI_IOTA;
@@ -224,7 +229,7 @@ always @(*) begin : FSM
             else begin
                 // The data is delivered in one big chunk having the size of RATE.
                 // We want to perform Theta, Rho and Pi in one step after absorbtion.
-                if(CHI_IOTA_ITERATIVE)
+                if(USE_LAMBDA_STEPS)
                     CtrlStatexDN = LAMBDA; // theta+rho+pi in one step
                 else
                     CtrlStatexDN = CHI_IOTA;
@@ -235,7 +240,9 @@ always @(*) begin : FSM
                 CtrlStatexDN = THETA;
             end
             else begin
-                if(CHI_IOTA_ITERATIVE)
+                // NOTE: The non-completeness property would not be fulfilled
+                // if chi(pi(rho(theta(STATE)))) is performed combinationally
+                if(USE_LAMBDA_STEPS)
                     CtrlStatexDN = LAMBDA; // theta+rho+pi in one step
                 else
                     CtrlStatexDN = CHI_IOTA;
@@ -356,7 +363,7 @@ always @(*) begin : FSM
             else begin
                 if(ABSORB_ITERATIVE || THETA_ITERATIVE || RHO_PI_ITERATIVE)
                     CtrlStatexDN = THETA;
-                else if(CHI_IOTA_ITERATIVE)
+                else if(USE_LAMBDA_STEPS)
                     CtrlStatexDN = LAMBDA;
                 else
                     CtrlStatexDN = CHI_IOTA;
